@@ -7,10 +7,15 @@ const Sequelize = require('sequelize')
 const {db} = require("../dataBase/db.js")
 
 // Defining Role model
-const Role = db.define('role',{
+const Role = db.define('roles',{
+    id:{
+        type:Sequelize.INTEGER,
+        primaryKey:true,
+        autoIncrement: true
+    },
     role: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
         unique: true,
         validate: {
             notEmpty: {

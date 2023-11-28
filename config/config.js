@@ -9,6 +9,9 @@ const dbConnection = async() =>{
     try{
         require('../models/Usuario.js')
         require('../models/Role.js')
+        require('../models/Producto.js')
+        require('../models/Categoria.js')
+        require('../models/Pedido.js')
         await db.authenticate()
         db.sync()
         console.log("Conectado a la base de datos")
