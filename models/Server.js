@@ -10,7 +10,9 @@ class Server{
         this.PORT = process.env.PORT || 5000
         this.host = process.env.HOST || '0.0.0.0'
         this.paths = {
-            appRoutes:"/",
+            authRoutes:"/",
+            productRoutes:"product/",
+            orderRoutes:"order/",
         }
         //conectar a base de datos
 
@@ -57,7 +59,7 @@ class Server{
 
     routes(){
     
-        this.app.use(this.paths.appRoutes, require("../routes/routes.js"))
+        this.app.use(this.paths.authRoutes, require("../routes/authRoutes.js"))
  
     }
  

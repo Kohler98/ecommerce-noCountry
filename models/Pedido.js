@@ -16,8 +16,13 @@ const Pedidos = db.define('pedidos',{
     direccion:{
         type: Sequelize.STRING(50),
         allowNull:false,
+        validate:{
+            notEmpty:{
+                msg:'Agregue una direccion'
+            },
+        }
 
-    },
+    }
 
 })
 Pedidos.belongsTo(Usuarios)

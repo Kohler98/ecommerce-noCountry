@@ -2,12 +2,13 @@
 const Sequelize = require('sequelize')
 const {db} = require("../dataBase/db.js")
 const bcrypt = require('bcrypt-nodejs')
- 
+const { v4: uuidv4 } = require('uuid');
 const Usuarios = db.define('usuarios',{
     id:{
-        type:Sequelize.INTEGER,
+        type:Sequelize.UUID,
         primaryKey:true,
-        autoIncrement: true
+        allowNull:false,
+        defaultValue: uuidv4(),
     },
     nombre:{
         type: Sequelize.STRING(50),
@@ -62,7 +63,7 @@ const Usuarios = db.define('usuarios',{
     },
     pais:{
         type:Sequelize.STRING,
-        defaultValue:0,
+        allowNull:false,
         validate:{
             notEmpty:{
                 msg:'El pais no puede estar vacio'
@@ -71,7 +72,7 @@ const Usuarios = db.define('usuarios',{
     },
     estado:{
         type:Sequelize.STRING,
-        defaultValue:0,
+        allowNull:false,
         validate:{
             notEmpty:{
                 msg:'El estado no puede estar vacio'
@@ -80,7 +81,7 @@ const Usuarios = db.define('usuarios',{
     },
     ciudad:{
         type:Sequelize.STRING,
-        defaultValue:0,
+        allowNull:false,
         validate:{
             notEmpty:{
                 msg:'El ciudad no puede estar vacio'

@@ -1,46 +1,162 @@
+const { generarJWT } = require("../helpers/generarJWT");
+const Pedidos = require("../models/Pedido");
 const Usuarios = require("../models/Usuario");
-const jwt = require('jsonwebtoken')
-const crearUsuario = async(req, res = response) => {
+const bcrypt = require('bcrypt-nodejs')
+require('dotenv').config({path:'variables.env'})
+
+const createUser = async(req, res = response) => {
     
-      try {
-        await Usuarios.create(req.body)
-        res.json({
-          msg:'Usuario creado con exito'
-        })
-      } catch (error) {
-        console.log(error)
-      }
+    try {
+      await Usuarios.create(req.body)
+      res.json({
+        msg:'Usuario creado con exito'
+      })
+    } catch (error) {
+      console.log(error)
+    }
  
 }
-const autenticarUsuario = async(req,res,next)=>{
+const login = async(req,res,next)=>{
   const {email, password} = req.body
     const usuario = await Usuarios.findOne({where:{email:email}})
  
     if(!usuario){
-      res.status(400).json({
-          mensaje:'Ese usuario no existe'
+      return res.status(400).json({
+          msg:'Ese usuario no existe'
       })
-      next()
+ 
   }
+  
   if(!usuario.validPassword(password)){
     // si el password es incorrecto
-    res.status(400).json({
+    return res.status(400).json({
         msg:'Contraseña incorrecta'
     })
-    next()
+ 
 }
-    const token = jwt.sign({
-      email:usuario.email,
-      nombre:usuario.nombre,
-      id:usuario._id
-    }, 
-      'LLAVESECRETA',{
-          expiresIn:"1h"
-    }
-    )
+   
+    const token = await generarJWT(usuario.id)
     res.json({token})
   }
+const getAllUsers = async(req, res) =>{
+    try {
+      const usuarios = await Usuarios.findAll();
+      res.json(usuarios);
+    } catch(err) {
+      console.error(err);
+      res.status(500).json({ msg: "Error al obtener usuarios" });
+    }
+}
+
+const getUserById = async(req,res)=>{
+  const id = req.params.id;
+  try {
+    const usuario = await Usuarios.findByPk(id);
+    if(usuario) {
+      res.json(usuario);
+    } else {
+      res.status(404).json({ msg: "Usuario no encontrado" });
+    }
+  } catch(err) {
+    console.log(err);
+    res.status(500).json({ msg: "Error al obtener usuario" })
+  }
+}
+
+const updateUser = async(req,res)=>{
+  const {id} = req.params
+  const {_id,password, ...resto} = req.body
+  const usuario = await Usuarios.findOne({where:{email:resto.email}})
+
+  if(usuario && req.usuario.email != resto.email){
+    return res.status(400).json({
+      msg:`Ya existe un usuario con el email ${resto.email}`
+    })
+ 
+  }
+    if(password){
+      const salt = bcrypt.genSaltSync()
+      resto.password = bcrypt.hashSync(password, salt);
+
+  }
+  try {
+      await Usuarios.update(resto,{where:{id:id}})
+ 
+      res.json({
+        msg:`Datos actualizados con exito`
+      })
+    
+  } catch (error) {
+      res.status(400).json({
+        msg:'Error al tratar de actualizar'
+    })
+  }
+  
+  
+}
+const deleteUser = async(req,res)=>{
+  try {
+    const usuario = await Usuarios.findByPk(req.params.id)
+
+    const {id, nombre, apellido } = usuario
+    await usuario.destroy()
+    res.json({
+      msg:`El usuario ${nombre} ${apellido} con el id: ${id} ha sido eliminado con exito`
+    })
+    
+  } catch (error) {
+    res.status(400).json({
+      msg:`Se produjo un error al intentar eliminar ha ${nombre} ${apellido}`
+    })
+    
+  }
+
+}
+const getUserProfile = async(req,res)=>{
+  const usuario = await Usuarios.findByPk(req.usuario.id)
+  const pedidos = await Pedidos.findAll({where:{usuarioId:req.usuario.id}})
+  res.json({
+    usuario,
+    pedidos
+  })
+}
+ 
+const updateProfile = async(req,res, next)=>{
+  const {password, role, ...resto} = req.body
+  const {id} = req.usuario
+  const usuario = await Usuarios.findOne({where:{email:resto.email}})
+
+  if(usuario && req.usuario.email != resto.email){
+    return res.status(400).json({
+      msg:`Ya existe un usuario con el email ${resto.email}`
+    })
+ 
+  }
+    if(password){
+      const salt = bcrypt.genSaltSync()
+      resto.password = bcrypt.hashSync(password, salt);
+
+  }
+  try {
+      await Usuarios.update(resto,{where:{id:id}})
+
+      res.json({
+        msg:`Datos actualizados con exito`
+      })
+    
+  } catch (error) {
+      res.status(400).json({
+        msg:'Error al tratar de actualizar'
+    })
+  }
+}
 module.exports = {
-    crearUsuario,
-    autenticarUsuario
+    createUser,
+    login,
+    getAllUsers,
+    getUserById,
+    updateUser,
+    deleteUser,
+    getUserProfile,
+    updateProfile
 }
